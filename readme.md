@@ -7,7 +7,7 @@
 
 # COLOQUE NO .ENV
 ```js
-    API_PORT=3332   
+    API_PORT=3330
     POSTGRES_DB=pessoas
     POSTGRES_USERNAME=postgres
     POSTGRES_PASSWORD=unochapeco
