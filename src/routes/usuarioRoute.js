@@ -1,5 +1,5 @@
 import usuarioController from "../controllers/usuarioController.js";
-
+// import validaLogin from "../middlewares/validaLoginMiddleware.js"
 
 export default (app) => {
     app.get('/usuario/info-by-token', usuarioController.getDataByToken);
