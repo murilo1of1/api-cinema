@@ -1,6 +1,7 @@
 import Usuario from "../models/UsuarioModel.js";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import Cargo from "../models/CargoModel.js";
 
 const get = async (req, res) => {
     try {
@@ -118,20 +119,39 @@ const login = async (req, res) => {
     }
 }; 
 
-const getDataByToken = (req, res) => {
+const getDataByToken = async (req, res) => {
     try {
-        const token = req.headers.authorization.split(' '[1]);
+        const token = req.headers.authorization.split(' ')[1];
 
-        const user = jwt.verify(token, process.env.TOKEN_KEY); 
+        if (!token) {
+            return res.status(400).send({
+                message: 'token inválido'
+            });
+        }
+
+        const user = jwt.verify(token, process.env.TOKEN_KEY);
+        
+        const usuario = await Usuario.findOne({
+            where: { id: user.idUsuario },
+            include: {
+              model: Cargo,
+              as: 'cargo',
+              attributes: ['descricao']
+            }
+        });
+
+        if (!usuario) {
+            return res.status(404).send({ message: 'Usuário não encontrado' });
+        }
         
         return res.status(200).send({
-            response: user 
-        });
+            response: usuario.toJSON()   
+        })
 
     } catch (error) {
         throw new Error(error.message);    
     }
-}
+};
 
 const update = async(corpo, id) => {
     try {
