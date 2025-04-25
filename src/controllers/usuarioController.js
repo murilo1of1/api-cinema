@@ -1,4 +1,6 @@
 import Usuario from "../models/UsuarioModel.js";
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 const get = async (req, res) => {
     try {
@@ -37,28 +39,97 @@ const get = async (req, res) => {
     }
 }
 
-const create = async (corpo) => {
+const create = async (corpo, res) => {
     try {
         const {
             nome,
             cpf,
             email,
             estudante,
-            idCargo
+            idCargo,
+            password,
         } = corpo
+
+        const verificaEmail = await Usuario.findOne({
+            where: {
+                email
+            }
+        });
+
+        if (verificaEmail) {
+            return res.status(400).send({
+                message: `Já existe usuário com esse email!`
+            });
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
 
         const response = await Usuario.create({
             nome,
             cpf,
             email,
             estudante,
-            idCargo
+            idCargo,
+            passwordHash
         });
 
         return response;
 
     } catch (error) {
         throw new Error(error.message);
+    }
+}
+
+const login = async (req, res) => {
+    try {
+        const {
+            email,
+            password
+        } = req.body;
+
+        const user = await Usuario.findOne({
+            where: {
+                email
+            }
+        });
+        
+        if (!user) {
+            return res.status(400).send({
+                message: "usuario ou senha incorretos"
+            });
+        }
+        
+        const comparacaoSenha = await bcrypt.compare(password, user.passwordHash);
+
+        if (comparacaoSenha) {
+            const token = jwt.sign( {idUsuario: user.id, nome: user.nome, cargo: user.idCargo, email: user.email}, process.env.TOKEN_KEY, { expiresIn: '8h'});    
+            return res.status(200).send({
+                message: 'Sucesso',
+                response: token
+            })
+        }else{
+            return res.status(400).send({
+                message: "usuario ou senha incorretos"
+            });
+        }
+ 
+    } catch (error) {
+        throw new Error(error.message);    
+    }
+}; 
+
+const getDataByToken = (req, res) => {
+    try {
+        const token = req.headers.authorization.split(' '[1]);
+
+        const user = jwt.verify(token, process.env.TOKEN_KEY); 
+        
+        return res.status(200).send({
+            response: user 
+        });
+
+    } catch (error) {
+        throw new Error(error.message);    
     }
 }
 
@@ -142,4 +213,6 @@ export default {
     get,
     persist,
     destroy,
+    login,
+    getDataByToken
 }

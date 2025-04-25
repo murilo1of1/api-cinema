@@ -22,6 +22,11 @@ const Usuario = sequelize.define(
         email: {
             type: DataTypes.STRING(100),
             unique: true,
+            allowNull: false
+        },
+        passwordHash: {
+            type: DataTypes.TEXT,
+            allowNull: false
         },
         estudante: {
             type: DataTypes.BOOLEAN,

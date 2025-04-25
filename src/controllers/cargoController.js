@@ -72,7 +72,7 @@ const update = async(corpo, id) => {
     } catch (error) {
         throw new Error(error.message);
     }
-}
+};
 
 const persist = async(req, res) => {
     try {
