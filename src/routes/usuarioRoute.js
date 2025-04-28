@@ -1,5 +1,4 @@
 import usuarioController from "../controllers/usuarioController.js";
-// import validaLogin from "../middlewares/validaLoginMiddleware.js"
 
 export default (app) => {
     app.get('/usuario/info-by-token', usuarioController.getDataByToken);
@@ -9,4 +8,6 @@ export default (app) => {
     app.patch('/usuario/:id', usuarioController.persist);
     app.delete('/usuario/:id', usuarioController.destroy);
     app.post('/usuario/login', usuarioController.login);
+    app.post('/usuario/forgot-password', usuarioController.forgotPassword); 
+    app.post('/usuario/reset-password', usuarioController.resetPassword);   
 }

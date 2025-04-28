@@ -2,6 +2,9 @@ import Usuario from "../models/UsuarioModel.js";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import Cargo from "../models/CargoModel.js";
+import sendMail from "../utils/email.js";
+import { Op } from 'sequelize';
+import crypto from 'crypto';
 
 const get = async (req, res) => {
     try {
@@ -229,10 +232,73 @@ const destroy = async (req, res) => {
     }
 }
 
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await Usuario.findOne({ where: { email } });
+
+        if (user) {
+            const resetToken = crypto.randomBytes(20).toString('hex');
+            const resetPasswordExpires = Date.now() + 30 * 60 * 1000; 
+
+            await Usuario.update(
+                { resetPasswordToken: resetToken, resetPasswordExpires: resetPasswordExpires },
+                { where: { email } }
+            );
+
+            console.log(email)
+
+            const mailOptions = {
+                to: email,
+                subject: 'Recuperação de Senha',
+                html: `<p>Você solicitou a recuperação de sua senha. Seu código temporário é: <strong>${resetToken}</strong>. Ele expirará em 30 minutos.</p>`,
+            };
+
+            await sendMail(mailOptions.to, mailOptions.name, mailOptions.html, mailOptions.subject); 
+
+            return res.status(200).send({ message: 'Um e-mail com as instruções de recuperação foi enviado (se o e-mail existir em nosso sistema).' });
+        } else {
+            return res.status(200).send({ message: 'Um e-mail com as instruções de recuperação foi enviado (se o e-mail existir em nosso sistema).' });
+        }
+    } catch (error) {
+        return res.status(500).send({ message: error.message });
+    }
+};
+
+const resetPassword = async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        const user = await Usuario.findOne({
+            where: {
+                resetPasswordToken: token,
+                resetPasswordExpires: { [Op.gt]: Date.now() },
+            },
+        });
+
+        if (!user) {
+            return res.status(400).send({ message: 'Código de recuperação inválido ou expirado.' });
+        }
+
+        const passwordHash = await bcrypt.hash(newPassword, 10);
+        await Usuario.update(
+            { passwordHash: passwordHash, resetPasswordToken: null, resetPasswordExpires: null },
+            { where: { id: user.id } }
+        );
+
+        return res.status(200).send({ message: 'Senha redefinida com sucesso!' });
+    } catch (error) {
+        return res.status(500).send({ message: error.message });
+    }
+};
+
+
 export default {
     get,
     persist,
     destroy,
     login,
-    getDataByToken
+    getDataByToken,
+    forgotPassword,
+    resetPassword
 }

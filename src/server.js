@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import morgan from 'morgan';
 import cors from 'cors';
+import fileUpload from 'express-fileupload';
 
 import {dirname} from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,13 +32,23 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(morgan('combined', { stream: logStream }));
-app.use(express.json({limit: '50mb'})); //tamanho do corpo
-app.use(express.urlencoded({extended: true, limit: '50mb'})); //tamanho da rota 
+app.use(express.json({limit: '50mb'})); 
+app.use(express.urlencoded({extended: true, limit: '50mb'})); 
+app.use(fileUpload({
+    createParentPath: true,
+    safeFileNames: true,
+    preserveExtension: true,
+    uriDecodeFileNames: true,
+    debug: true,
+    limits: {fileSize: 50 * 1024 * 1024}    
+}));
+app.use(express.static('public'));
 
 Routes(app);
 app.use((req, res) => {
     res.status(404).send('404 - página não encontrada');
 });
+
 
 sequelize.authenticate()
     .then(() => {

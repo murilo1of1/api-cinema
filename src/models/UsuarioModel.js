@@ -32,7 +32,17 @@ const Usuario = sequelize.define(
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: false,
-        }
+        },
+        resetPasswordToken: {
+            field: 'reset_password_token',
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        resetPasswordExpires: {
+            field:'reset_password_expires',
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
     },
     {
         freezeTableName: true,
