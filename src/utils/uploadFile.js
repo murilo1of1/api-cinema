@@ -21,7 +21,7 @@ export default async(file, params) => {
 
         return {
             type: 'sucess',
-            message: uploadPath
+            message: filepath
         }
         
     } catch (error) {
