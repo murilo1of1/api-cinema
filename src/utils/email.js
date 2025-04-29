@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import 'dotenv/config';
 
 /**
  * 
@@ -13,8 +14,8 @@ async function sendMail(to, name, body, subject) {
         port: 587,
         secure: false,
         auth: {
-            user: 'murilo.vidi@unochapeco.edu.br',
-            pass: 'zdtk lfpp lyva lwyr'
+            user: process.env.MAIL,
+            pass: process.env.PASS_KEY 
         }
     });
 
